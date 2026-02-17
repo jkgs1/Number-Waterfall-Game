@@ -10,9 +10,10 @@ import socketio
 # CONFIGURATION
 # =============================
 
-USE_WEBCAM = False        # Set False to use image instead
-IMAGE_PATH = os.path.abspath("wizard-of-oz\debug.png")  # Used if USE_WEBCAM = False
+USE_WEBCAM = True        # Set False to use image instead
+IMAGE_PATH = os.path.abspath("wizard-of-oz/debug.png")  # Used if USE_WEBCAM = False
 SOCKET_SERVER = "http://localhost:5000"
+WEBCAM_DEVICE = 1
 
 # SocketIO
 
@@ -119,7 +120,7 @@ def compute_homography():
 def main():
 
     if USE_WEBCAM:
-        cap = cv2.VideoCapture(0)
+        cap = cv2.VideoCapture(WEBCAM_DEVICE)
     else:
         img = cv2.imread(IMAGE_PATH)
 
