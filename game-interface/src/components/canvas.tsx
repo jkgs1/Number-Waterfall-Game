@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react"
 import {WaterfallGame} from "../games/waterfall-game.ts"
 import { Time } from "../games/Game"
+import { unlockAudio as unlockAudio } from "../sound/SoundManager"
 
 export default function GameCanvas() {
     const canvasRef = useRef<HTMLCanvasElement | null>(null)
@@ -33,6 +34,7 @@ export default function GameCanvas() {
 
         // click handling
         const handleClick = (e: MouseEvent) => {
+            unlockAudio()
             const rect = canvas.getBoundingClientRect()
             const x = e.clientX - rect.left
             const y = e.clientY - rect.top

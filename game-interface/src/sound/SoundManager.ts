@@ -34,3 +34,14 @@ export class SoundManager {
         })
     }
 }
+let audioUnlocked = false
+
+export function unlockAudio() {
+    if (audioUnlocked) return
+    audioUnlocked = true
+
+    const a = new Audio()
+    a.src = "/sounds/click.mp3"
+    a.volume = 0
+    a.play().catch(() => {})
+}

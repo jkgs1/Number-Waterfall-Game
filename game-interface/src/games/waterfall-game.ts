@@ -355,11 +355,15 @@ export class WaterfallGame extends Game {
                     this.feedbackTimer = 1.5
 
                     const utter = new SpeechSynthesisUtterance(
-                        `Good job! ${this.currentA} plus ${this.currentB} equals ${this.answer}`
+                        `Good job!`
                     )
                     speechSynthesis.speak(utter)
 
                 } else {
+                    const utter = new SpeechSynthesisUtterance(
+                        `WRONG`
+                    )
+                    speechSynthesis.speak(utter)
                     this.digits.splice(i, 1)
                     this.state = "feedback_wrong"
                     this.feedbackTimer = 0.5
