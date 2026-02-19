@@ -7,11 +7,14 @@ export default function GameCanvas() {
 
     useEffect(() => {
         const canvas = canvasRef.current!
-        const ctx = canvas.getContext("2d")!
 
-        // resize to fullscreen
-        canvas.width = window.innerWidth
-        canvas.height = window.innerHeight
+        const updateSize = () => {
+            canvas.width = window.innerWidth
+            canvas.height = window.innerHeight
+        }
+
+        window.addEventListener("resize", updateSize)
+        updateSize()
 
         const game = new WaterfallGame(canvas, {
             backgroundSrc: ""
@@ -40,6 +43,7 @@ export default function GameCanvas() {
 
         return () => {
             canvas.removeEventListener("click", handleClick)
+            window.removeEventListener("resize", updateSize)
         }
     }, [])
 

@@ -1,4 +1,5 @@
 import { Game, Time } from "./Game"
+import waterfall from "../assets/waterfall.jpg"
 
 type DigitEntity = {
     value: number
@@ -18,6 +19,9 @@ type GameState =
 export class WaterfallGame extends Game {
 
     private state: GameState = "menu"
+
+    private backgroundImg = new Image()
+    private backgroundLoaded = false
 
     private digits: DigitEntity[] = []
     private spawnTimer = 0
@@ -40,8 +44,12 @@ export class WaterfallGame extends Game {
     private playBtn = { x: 0, y: 0, w: 200, h: 80 }
 
     start(): void {
-        this.setupLanes()
         this.resetGame()
+
+        this.backgroundImg.src = waterfall
+        this.backgroundImg.onload = () => {
+            this.backgroundLoaded = true
+        }
     }
 
     private resetGame() {
@@ -79,6 +87,19 @@ export class WaterfallGame extends Game {
     update(time: Time): void {
         const ctx = this.getContext()
         const canvas = this.getCanvas()
+
+        // handle resize
+        if (this.laneWidth === 0) {
+            this.setupLanes()
+        } else {
+            const digitSize = 132
+            const padding = 20
+            const expectedLaneWidth = digitSize + padding
+            const expectedLaneCount = Math.floor(canvas.width / expectedLaneWidth)
+            if (this.lanes.length !== expectedLaneCount) {
+                this.setupLanes()
+            }
+        }
 
         ctx.clearRect(0, 0, canvas.width, canvas.height)
 
@@ -226,9 +247,23 @@ export class WaterfallGame extends Game {
         const ctx = this.getContext()
         const canvas = this.getCanvas()
 
-        // background
-        ctx.fillStyle = "#111"
-        ctx.fillRect(0, 0, canvas.width, canvas.height)
+        if (this.backgroundLoaded) {
+            ctx.drawImage(
+                this.backgroundImg,
+                0,
+                0,
+                canvas.width,
+                canvas.height
+            )
+
+            // optional: blur overlay effect
+            ctx.fillStyle = "rgba(0,0,0,0.25)"
+            ctx.fillRect(0, 0, canvas.width, canvas.height)
+        } else {
+            ctx.fillStyle = "#000"
+            ctx.fillRect(0, 0, canvas.width, canvas.height)
+        }
+
 
         // top rectangle with math problem
         ctx.fillStyle = "#ffffff"
