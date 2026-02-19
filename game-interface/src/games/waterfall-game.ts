@@ -1,5 +1,5 @@
 import { Game, Time } from "./Game"
-import waterfall from "../assets/waterfall.jpg"
+import waterfall from "../assets/Background.png"
 
 type DigitEntity = {
     value: number
@@ -10,7 +10,7 @@ type DigitEntity = {
 }
 
 type GameState =
-    | "menu"
+    | "waiting"
     | "playing"
     | "feedback_correct"
     | "feedback_wrong"
@@ -18,7 +18,7 @@ type GameState =
 
 export class WaterfallGame extends Game {
 
-    private state: GameState = "menu"
+    private state: GameState = "waiting"
 
     private backgroundImg = new Image()
     private backgroundLoaded = false
@@ -40,20 +40,30 @@ export class WaterfallGame extends Game {
     private laneWidth = 0
 
 
-    // UI bounds for menu button
-    private playBtn = { x: 0, y: 0, w: 200, h: 80 }
 
     start(): void {
-        this.resetGame()
-
         this.backgroundImg.src = waterfall
         this.backgroundImg.onload = () => {
             this.backgroundLoaded = true
         }
+        this.resetGame()
+    }
+
+    public externalStart(rounds: number) {
+        this.maxRounds = rounds
+        this.score = 0
+        this.roundsPlayed = 0
+        this.digits = []
+        this.startRound()
+        console.log(`Game started with ${this.maxRounds} rounds`)
+    }
+
+    public externalStop() {
+        this.resetGame()
     }
 
     private resetGame() {
-        this.state = "menu"
+        this.state = "waiting"
         this.score = 0
         this.roundsPlayed = 0
         this.digits = []
@@ -104,8 +114,8 @@ export class WaterfallGame extends Game {
         ctx.clearRect(0, 0, canvas.width, canvas.height)
 
         switch (this.state) {
-            case "menu":
-                this.drawMenu()
+            case "waiting":
+                this.drawWaiting()
                 break
             case "playing":
                 this.updatePlaying(time)
@@ -202,15 +212,15 @@ export class WaterfallGame extends Game {
     private updateFeedback(time: Time) {
         this.feedbackTimer -= time.deltaTime
         if (this.feedbackTimer <= 0) {
-            if (this.state === "feedback_correct") {
-                this.roundsPlayed++
-                if (this.roundsPlayed >= this.maxRounds) {
-                    this.state = "game_over"
-                } else {
-                    this.startRound()
-                }
+            this.roundsPlayed++
+            if (this.roundsPlayed >= this.maxRounds) {
+                this.state = "game_over"
             } else {
-                this.state = "playing"
+                if (this.state === "feedback_correct") {
+                    this.startRound()
+                } else {
+                    this.state = "playing"
+                }
             }
         }
     }
@@ -219,7 +229,7 @@ export class WaterfallGame extends Game {
     // RENDERING
     // -----------------------
 
-    private drawMenu() {
+    private drawWaiting() {
         const ctx = this.getContext()
         const canvas = this.getCanvas()
 
@@ -230,17 +240,7 @@ export class WaterfallGame extends Game {
         ctx.font = "48px sans-serif"
         ctx.textAlign = "center"
 
-        ctx.fillText("Math Game", canvas.width / 2, 120)
-
-        // play button
-        this.playBtn.x = canvas.width / 2 - 100
-        this.playBtn.y = canvas.height / 2 - 40
-
-        ctx.fillStyle = "#4CAF50"
-        ctx.fillRect(this.playBtn.x, this.playBtn.y, this.playBtn.w, this.playBtn.h)
-
-        ctx.fillStyle = "white"
-        ctx.fillText("PLAY", canvas.width / 2, canvas.height / 2 + 15)
+        ctx.fillText("Waiting for connection", canvas.width / 2, canvas.height / 2)
     }
 
     private drawGame() {
@@ -320,10 +320,8 @@ export class WaterfallGame extends Game {
 
     onClick(x: number, y: number): void {
         switch (this.state) {
-            case "menu":
-                if (this.inRect(x, y, this.playBtn)) {
-                    this.startRound()
-                }
+            case "waiting":
+                // No action
                 break
 
             case "playing":
@@ -373,7 +371,4 @@ export class WaterfallGame extends Game {
         }
     }
 
-    private inRect(x: number, y: number, r: { x: number, y: number, w: number, h: number }) {
-        return x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h
-    }
 }

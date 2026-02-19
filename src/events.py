@@ -18,6 +18,14 @@ def register_events():
             def handle_click(data):
                 emit("click", data, broadcast=True)
 
+    @socketio.on('start')
+    def handle_start(data):
+        emit("start_game", data, broadcast=True)
+
+    @socketio.on('stop')
+    def handle_stop():
+        emit("stop_game", broadcast=True)
+
     @socketio.on('message')
     def handle_message(data):
         username = users.get(request.sid, "Anonymous")

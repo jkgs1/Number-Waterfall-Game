@@ -12,7 +12,7 @@ importlib-metadata==8.5.0
 itsdangerous==2.2.0
 jinja2==3.1.6
 MarkupSafe==2.1.5
-numpy==1.24.4
+numpy
 opencv-python==4.13.0.92
 python-engineio==4.13.1
 python-socketio==5.16.1

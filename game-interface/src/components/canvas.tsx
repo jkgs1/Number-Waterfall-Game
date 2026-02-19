@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react"
 import {WaterfallGame} from "../games/waterfall-game.ts"
 import { Time } from "../games/Game"
 import { unlockAudio as unlockAudio } from "../sound/SoundManager"
+import {connect} from "../socket/websocket.ts";
 
 export default function GameCanvas() {
     const canvasRef = useRef<HTMLCanvasElement | null>(null)
@@ -23,6 +24,17 @@ export default function GameCanvas() {
 
         const time = new Time()
 
+        const socket = connect("student")
+        socket.on("start_game", (data: { rounds: number }) => {
+            console.log("[WS] start_game", data)
+            game.externalStart(data.rounds)
+        })
+
+        socket.on("stop_game", () => {
+            console.log("[WS] stop_game")
+            game.externalStop()
+        })
+
         function loop(ts: number) {
             time.update(ts)
             game.update(time)
@@ -30,6 +42,7 @@ export default function GameCanvas() {
         }
 
         game.start()
+        // game.start() already calls resetGame() which sets state to "waiting"
         requestAnimationFrame(loop)
 
         // click handling
