@@ -13,6 +13,11 @@ def register_events():
         join_room(username)
         emit("message", f"{username} joined the chat", room=username)
 
+        if username == "cv":
+            @socketio.on("click")
+            def handle_click(data):
+                emit("click", data, broadcast=True)
+
     @socketio.on('message')
     def handle_message(data):
         username = users.get(request.sid, "Anonymous")

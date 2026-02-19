@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        
+        <script src="https://cdn.socket.io/4.8.3/socket.io.min.js" integrity="sha384-kzavj5fiMwLKzzD1f8S7TeoVIEi7uKHvbTA3ueZkrzYq75pNQUiUi6Dy98Q3fxb0" crossorigin="anonymous"></script>
+    </head>
+    <body>
+        <canvas width="800" height="600" id="canvas"></canvas>
+        <script>
+
+            const canvas = document.getElementById("canvas")
+            /** @type {CanvasRenderingContext2D} */
+            const ctx = canvas.getContext("2d")
+            const WIDTH  = canvas.width
+            const HEIGHT = canvas.height
+
+            const socket = io("http://localhost:5000")
+
+            socket.on("connect", () => {
+                console.log("connected")
+                socket.emit("join", "game")
+            })
+
+            socket.on("click", data => {
+                console.log(data)
+                drawClick(data.x, data.y)
+            })
+
+            drawBG()
+
+            function drawBG() {
+                ctx.fillStyle = "#000"
+                ctx.fillRect(0, 0, WIDTH, HEIGHT)
+            }
+
+            function drawClick(xPerc, yPerc) {
+                const x = xPerc * WIDTH
+                const y = yPerc * HEIGHT
+
+                ctx.strokeStyle = "#f00"
+                ctx.fillStyle = "#f00"
+                ctx.beginPath()
+                ctx.arc(x, y, 7, 0, 2*Math.PI)
+                ctx.fill()
+                // ctx.stroke()
+            } 
+
+
+        </script>
+    </body>
+</html>
