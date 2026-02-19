@@ -1,14 +1,9 @@
-import { io } from "socket.io-client"
+import { io } from "socket.io-client";
 
+const socket = io(import.meta.env.VITE_SOCKET_HOST, {
+    transports: ["websocket"]
+})
 
-export function join() {
-    const socket = io(import.meta.env.VITE_SOCKET_HOST)
-    socket.on("connect", () => { 
-        console.log("Connected")
-        socket.emit("join", "teacher")
-    })
-
-    socket.on("message", msg => {
-        console.log(msg)
-    })
+export function getSocket() {
+    return socket;
 }

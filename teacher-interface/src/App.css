@@ -40,3 +40,42 @@
 .read-the-docs {
   color: #888;
 }
+
+
+
+.container {
+    display: flex;
+    flex-direction: column;
+}
+
+.settings {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+label {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+button {
+    transition: background 0.2s ease-out;
+}
+
+.start {
+    background: rgb(17, 110, 17);
+}
+
+.stop {
+    background: rgb(134, 27, 27);
+}
+
+button[disabled] {
+    background: gray;
+}
+
+.rounds {
+    padding: 10px;
+}

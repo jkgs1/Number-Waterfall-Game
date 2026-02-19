@@ -1,40 +1,58 @@
-import { useEffect, useState } from 'react'
-import './App.css'
-import reactLogo from './assets/react.svg'
-import { join } from './socket/websocket'
-import viteLogo from '/vite.svg'
+import { useState } from "react";
+import "./App.css";
+import { useSocket } from "./socket/useSocket";
+import { delay } from "./util/delay";
 
 function App() {
-  const [count, setCount] = useState(0)
 
-  useEffect(() => {
-    join()
-  }, [])
+    const [rounds, setRounds] = useState(1)
+    const [startDisabled, setStartDisabled] = useState(false)
+    const [stopDisabled, setStopDisabled] = useState(false)
 
-  return (
+    const socket = useSocket({
+        "connect": () => {
+            socket.emit("join", "teacher")
+            console.log("Connected to WS")
+        }
+    })
+
+
+    async function start() {
+        setStartDisabled(true)
+        socket.emit("start", {rounds})
+        await delay(500)
+        setStartDisabled(false)
+    }
+
+    async function stop() {
+        setStopDisabled(true)
+        socket.emit("stop")
+        await delay(500)
+        setStopDisabled(false)
+    }
+    
+    return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+        <div className="container">
+            <h1>Inställningar</h1>
+            <div className="settings">
+
+                <label>
+                    <span>Antal Rundor</span>
+                    <input type="number" className="rounds" value={rounds} onChange={e => setRounds(+e.target.value)}/>
+                </label>
+
+                <label>
+                    <button onClick={start} className="start" disabled={startDisabled}>Start</button>
+                </label>
+                
+                <label>
+                    <button onClick={stop} className="stop" disabled={stopDisabled}>Stopp</button>
+                </label>
+            </div>
+        </div>
     </>
-  )
+    );
 }
 
-export default App
+export default App;
