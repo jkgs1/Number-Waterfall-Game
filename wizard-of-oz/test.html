@@ -26,6 +26,10 @@
                 drawClick(data.x, data.y)
             })
 
+            socket.on("start", msg => {
+                console.log(msg)
+            })
+
             drawBG()
 
             function drawBG() {
