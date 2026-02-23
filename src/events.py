@@ -13,18 +13,17 @@ def register_events():
         join_room(username)
         emit("message", f"{username} joined the chat", room=username)
 
-        if username == "cv":
-            @socketio.on("click")
-            def handle_click(data):
-                emit("click", data, broadcast=True)
-                
-        if username == "teacher":
-            @socketio.on("start")
-            def handle_start(settings):
-                emit("start", settings, broadcast=True)
-            @socketio.on("stop")
-            def handle_stop():
-                emit("stop")
+    @socketio.on("start_game")
+    def handle_start(settings):
+        emit("start_game", settings, broadcast=True)
+
+    @socketio.on("stop_game")
+    def handle_stop():
+        emit("stop_game", broadcast=True)
+
+    @socketio.on("click")
+    def handle_click(data):
+        emit("click", data, broadcast=True)
 
     # @socketio.on('start')
 

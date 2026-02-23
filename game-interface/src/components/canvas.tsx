@@ -25,9 +25,12 @@ export default function GameCanvas() {
         const time = new Time()
 
         const socket = connect("student")
-        socket.on("start_game", (data: { rounds: number }) => {
+        socket.on("start_game", (data: { rounds: number, style: string }) => {
             console.log("[WS] start_game", data)
-            game.externalStart(data.rounds)
+            if (data.style) {
+                game.setNumberSet(data.style)
+            }
+            game.externalStart(data.rounds, data.style)
         })
 
         socket.on("stop_game", () => {

@@ -31,13 +31,29 @@ export class WaterfallGame extends Game {
     private answer = 0
 
     private score = 0
-    private roundsPlayed = 0
     private maxRounds = 10
+    private currentProblemIndex = 0
+
+    private readonly problems: { a: number, b: number, ans: number }[] = [
+        { a: 1, b: 1, ans: 2 }, { a: 1, b: 2, ans: 3 }, { a: 2, b: 1, ans: 3 }, { a: 2, b: 2, ans: 4 }, { a: 1, b: 3, ans: 4 },
+        { a: 3, b: 1, ans: 4 }, { a: 2, b: 3, ans: 5 }, { a: 3, b: 2, ans: 5 }, { a: 4, b: 1, ans: 5 }, { a: 1, b: 4, ans: 5 },
+        { a: 3, b: 3, ans: 6 }, { a: 2, b: 4, ans: 6 }, { a: 4, b: 2, ans: 6 }, { a: 5, b: 1, ans: 6 }, { a: 1, b: 5, ans: 6 },
+        { a: 4, b: 3, ans: 7 }, { a: 3, b: 4, ans: 7 }, { a: 5, b: 2, ans: 7 }, { a: 2, b: 5, ans: 7 }, { a: 6, b: 1, ans: 7 },
+        { a: 4, b: 4, ans: 8 }, { a: 5, b: 3, ans: 8 }, { a: 3, b: 5, ans: 8 }, { a: 6, b: 2, ans: 8 }, { a: 2, b: 6, ans: 8 },
+        { a: 5, b: 4, ans: 9 }, { a: 4, b: 5, ans: 9 }, { a: 6, b: 3, ans: 9 }, { a: 3, b: 6, ans: 9 }, { a: 7, b: 2, ans: 9 }
+    ]
 
     private feedbackTimer = 0
 
     private lanes: number[] = []
     private laneWidth = 0
+
+    private digitImages: HTMLImageElement[] = []
+
+    // Deterministic spawn order for falling digits (repeatable sequence)
+    private spawnOrder: number[] = [1,2,3,4,5,6,7,8,9]
+    private spawnOrderIndex: number = 0
+    private currentStyle: string = "plain"
 
 
 
@@ -46,16 +62,29 @@ export class WaterfallGame extends Game {
         this.backgroundImg.onload = () => {
             this.backgroundLoaded = true
         }
+        this.setNumberSet("plain")
         this.resetGame()
     }
 
-    public externalStart(rounds: number) {
-        this.maxRounds = rounds
+    public externalStart(rounds: number, style: string) {
+        this.maxRounds = Math.min(rounds, 30)
         this.score = 0
-        this.roundsPlayed = 0
         this.digits = []
+        this.spawnOrderIndex = 0
+        this.currentStyle = style
+
+        if (style === "animals") {
+            this.currentProblemIndex = 0
+        } else if (style === "plain") {
+            this.currentProblemIndex = 5
+        } else if (style === "colorful") {
+            this.currentProblemIndex = 10
+        } else {
+            this.currentProblemIndex = 0
+        }
+
         this.startRound()
-        console.log(`Game started with ${this.maxRounds} rounds`)
+        console.log(`Game started with ${this.maxRounds} rounds using style ${style} starting at problem ${this.currentProblemIndex}`)
     }
 
     public externalStop() {
@@ -65,8 +94,8 @@ export class WaterfallGame extends Game {
     private resetGame() {
         this.state = "waiting"
         this.score = 0
-        this.roundsPlayed = 0
         this.digits = []
+        this.spawnOrderIndex = 0
     }
 
     private startRound() {
@@ -78,13 +107,34 @@ export class WaterfallGame extends Game {
     }
 
     private generateProblem() {
-        this.currentA = Math.floor(Math.random() * 10)
-        this.currentB = Math.floor(Math.random() * 10)
-        this.answer = this.currentA + this.currentB
+        const problem = this.problems[this.currentProblemIndex % this.problems.length]
+        this.currentA = problem.a
+        this.currentB = problem.b
+        this.answer = problem.ans
+        
+        // Advance to next problem for the next round
+        this.currentProblemIndex = (this.currentProblemIndex + 1) % this.problems.length
+    }
 
-        // keep <= 10 for now
-        if (this.answer > 10) {
-            this.generateProblem()
+    public setNumberSet(style: string) {
+        this.digitImages = []
+
+        const availableStyles = ["plain", "animals", "colored", "colorful"]
+        const requestedStyle = availableStyles.includes(style) ? style : "plain"
+
+        // Normalize style: map unimplemented colored/colorful to plain (assets + behavior)
+        let assetFolder = requestedStyle
+        if (requestedStyle === "colored" || requestedStyle === "colorful") {
+            assetFolder = "plain"
+        }
+        // Use the normalized folder also as the current style so rendering logic applies consistently
+        this.currentStyle = assetFolder
+
+        // We only have 1-9.svg
+        for (let i = 1; i <= 9; i++) {
+            const img = new Image()
+            img.src = new URL(`../assets/${assetFolder}/${i}.svg`, import.meta.url).href
+            this.digitImages[i] = img
         }
     }
 
@@ -102,7 +152,7 @@ export class WaterfallGame extends Game {
         if (this.laneWidth === 0) {
             this.setupLanes()
         } else {
-            const digitSize = 132
+            const digitSize = 350
             const padding = 20
             const expectedLaneWidth = digitSize + padding
             const expectedLaneCount = Math.floor(canvas.width / expectedLaneWidth)
@@ -158,7 +208,7 @@ export class WaterfallGame extends Game {
     private spawnDigit() {
         if (this.lanes.length === 0) return
 
-        const size = 132
+        const size = 350
         const half = size / 2
 
         // choose random lane
@@ -167,12 +217,14 @@ export class WaterfallGame extends Game {
 
         // check if lane is free near top (avoid stacking)
         const tooClose = this.digits.some(d =>
-            Math.abs(d.x - x) < 5 && d.y < size * 1.5
+            Math.abs(d.x - x) < 5 && d.y < size * 1.2
         )
 
         if (tooClose) return  // skip this spawn cycle
 
-        const value = Math.floor(Math.random() * 10) + 1
+        // Deterministic value spawn from predefined order
+        const value = this.spawnOrder[this.spawnOrderIndex]
+        this.spawnOrderIndex = (this.spawnOrderIndex + 1) % this.spawnOrder.length
 
         this.digits.push({
             value,
@@ -187,7 +239,7 @@ export class WaterfallGame extends Game {
     private setupLanes() {
         const canvas = this.getCanvas()
 
-        const digitSize = 132
+        const digitSize = 350
         const padding = 20
 
         // each lane must fit one digit + spacing
@@ -212,15 +264,14 @@ export class WaterfallGame extends Game {
     private updateFeedback(time: Time) {
         this.feedbackTimer -= time.deltaTime
         if (this.feedbackTimer <= 0) {
-            this.roundsPlayed++
-            if (this.roundsPlayed >= this.maxRounds) {
-                this.state = "game_over"
-            } else {
-                if (this.state === "feedback_correct") {
-                    this.startRound()
+            if (this.state === "feedback_correct") {
+                if (this.score >= this.maxRounds) {
+                    this.state = "game_over"
                 } else {
-                    this.state = "playing"
+                    this.startRound()
                 }
+            } else {
+                this.state = "playing"
             }
         }
     }
@@ -276,13 +327,55 @@ export class WaterfallGame extends Game {
 
         // digits raining
         ctx.fillStyle = "white"
-        ctx.font = "132px sans-serif"
+        ctx.font = "350px sans-serif"
 
         ctx.textAlign = "center"
         ctx.textBaseline = "middle"
 
         for (const d of this.digits) {
-            ctx.fillText(d.value.toString(), d.x, d.y)
+            const img = this.digitImages[d.value]
+            const canDrawImg = !!(img && (img.complete || (img as any).decode) && img.naturalWidth > 0)
+            if (canDrawImg) {
+                if (this.currentStyle === "plain") {
+                    // Draw using offscreen canvas and tint to solid black via alpha mask
+                    const off = document.createElement('canvas')
+                    off.width = d.size
+                    off.height = d.size
+                    const octx = off.getContext('2d')!
+                    // draw the image centered into offscreen
+                    octx.drawImage(
+                        img,
+                        0,
+                        0,
+                        d.size,
+                        d.size
+                    )
+                    // tint to black preserving alpha
+                    const prevComp = octx.globalCompositeOperation
+                    octx.globalCompositeOperation = 'source-atop'
+                    octx.fillStyle = '#000'
+                    octx.fillRect(0, 0, d.size, d.size)
+                    octx.globalCompositeOperation = prevComp
+
+                    // blit to main canvas
+                    ctx.drawImage(off, d.x - d.size / 2, d.y - d.size / 2, d.size, d.size)
+                } else {
+                    // Non-plain: draw as-is
+                    ctx.drawImage(
+                        img,
+                        d.x - d.size / 2,
+                        d.y - d.size / 2,
+                        d.size,
+                        d.size
+                    )
+                }
+            } else {
+                // Fallback to drawing text if image is not loaded
+                ctx.save()
+                ctx.fillStyle = this.currentStyle === 'plain' ? '#000' : ctx.fillStyle
+                ctx.fillText(d.value.toString(), d.x, d.y)
+                ctx.restore()
+            }
         }
 
         // score

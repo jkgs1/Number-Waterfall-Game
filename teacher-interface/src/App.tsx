@@ -9,7 +9,7 @@ function App() {
     const [startDisabled, setStartDisabled] = useState(false)
     const [stopDisabled, setStopDisabled] = useState(false)
 
-    const [numberSet, setNumberSet] = useState("animals")
+    const [numberSet, setNumberSet] = useState("plain")
 
     const socket = useSocket({
         "connect": () => {
@@ -21,17 +21,18 @@ function App() {
 
     async function start() {
         setStartDisabled(true)
-        socket.emit("start", {
+        socket.emit("start_game", {
             rounds,
-            numberType: numberSet, 
+            style: numberSet,
         })
+        console.log("[teacher] emitting start_game", { rounds, numberSet })
         await delay(500)
         setStartDisabled(false)
     }
 
     async function stop() {
         setStopDisabled(true)
-        socket.emit("stop")
+        socket.emit("stop_game")
         await delay(500)
         setStopDisabled(false)
     }
@@ -44,14 +45,14 @@ function App() {
 
                 <label>
                     <span>Antal Rundor</span>
-                    <input type="number" className="rounds" value={rounds} onChange={e => setRounds(+e.target.value)}/>
+                    <input type="number" className="rounds" value={rounds} onChange={e => setRounds(Math.min(+e.target.value, 30))}/>
                 </label>
 
                 <label>
                     <span>Siffror-set</span>
                     <select className="select" value={numberSet} onChange={e => setNumberSet(e.target.value)}>
                         <option value="animals">Dinosaurier</option>
-                        <option value="colored">Färger</option>
+                        <option value="colorful">Färger</option>
                         <option value="plain">Vanliga</option>
                     </select>
                 </label>
