@@ -1,8 +1,8 @@
-import { useEffect, useRef } from "react"
-import {WaterfallGame} from "../games/waterfall-game.ts"
-import { Time } from "../games/Game"
-import { unlockAudio as unlockAudio } from "../sound/SoundManager"
-import {connect} from "../socket/websocket.ts";
+import { useEffect, useRef } from "react";
+import { Time } from "../games/Game";
+import { WaterfallGame } from "../games/waterfall-game.ts";
+import { connect } from "../socket/websocket.ts";
+import { unlockAudio } from "../sound/SoundManager";
 
 export default function GameCanvas() {
     const canvasRef = useRef<HTMLCanvasElement | null>(null)
@@ -56,6 +56,14 @@ export default function GameCanvas() {
             const y = e.clientY - rect.top
             game.onClick(x, y)
         }
+
+        // x and y are given in percentages from top left
+        socket.on("click", ({x, y}) => {
+            const rect = canvas.getBoundingClientRect()
+            const realX = x * rect.right
+            const realY = y * rect.bottom
+            game.onClick(realX, realY)
+        })
 
         canvas.addEventListener("click", handleClick)
 
