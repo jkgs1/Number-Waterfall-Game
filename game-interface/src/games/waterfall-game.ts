@@ -54,6 +54,8 @@ export class WaterfallGame extends Game {
     private spawnOrder: number[] = [1,2,3,4,5,6,7,8,9]
     private spawnOrderIndex: number = 0
     private currentStyle: string = "plain"
+    public plainColor: string = "#ff0000" //red number
+    public plainColorActive: boolean = false
 
 
 
@@ -353,7 +355,7 @@ export class WaterfallGame extends Game {
                     // tint to black preserving alpha
                     const prevComp = octx.globalCompositeOperation
                     octx.globalCompositeOperation = 'source-atop'
-                    octx.fillStyle = '#000'
+                    octx.fillStyle = this.plainColorActive ? this.plainColor : '#000'
                     octx.fillRect(0, 0, d.size, d.size)
                     octx.globalCompositeOperation = prevComp
 
@@ -372,7 +374,7 @@ export class WaterfallGame extends Game {
             } else {
                 // Fallback to drawing text if image is not loaded
                 ctx.save()
-                ctx.fillStyle = this.currentStyle === 'plain' ? '#000' : ctx.fillStyle
+                ctx.fillStyle = this.currentStyle === 'plain' ? (this.plainColorActive ? this.plainColor : '#000') : ctx.fillStyle
                 ctx.fillText(d.value.toString(), d.x, d.y)
                 ctx.restore()
             }
